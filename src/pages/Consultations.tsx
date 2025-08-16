@@ -2,51 +2,51 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Consultation } from '../types';
+import { Consultation, Patient } from '../types'; // Certifique-se de importar o tipo Patient
+import { apiService } from '../services/api';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { Input } from '../components/ui/Input';
 
 export const Consultations: React.FC = () => {
   const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]); // Novo estado para pacientes
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
 
   const [formData, setFormData] = useState({
+    patientId: '',
     patientName: '',
     date: '',
     time: '',
+    status: 'scheduled' as const,
     notes: '',
+    weight: 0,
   });
 
   useEffect(() => {
     loadConsultations();
+    loadPatients(); // Carrega a lista de pacientes
   }, []);
 
   const loadConsultations = async () => {
-    const mockConsultations: Consultation[] = [
-      {
-        id: '1',
-        patientId: '1',
-        patientName: 'Maria Silva',
-        date: '2024-01-25',
-        time: '09:00',
-        status: 'scheduled',
-        notes: 'Consulta de retorno',
-      },
-      {
-        id: '2',
-        patientId: '2',
-        patientName: 'João Santos',
-        date: '2024-01-25',
-        time: '14:00',
-        status: 'scheduled',
-        notes: 'Primeira consulta',
-      },
-    ];
-    setConsultations(mockConsultations);
+    try {
+      const response = await apiService.getConsultations();
+      setConsultations(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar consultas:', error);
+    }
+  };
+
+  const loadPatients = async () => {
+    try {
+      const response = await apiService.getPatients(); // Assume que getPatients retorna a lista
+      setPatients(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar pacientes:', error);
+    }
   };
 
   const getDaysInMonth = () => {
@@ -63,18 +63,26 @@ export const Consultations: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Criando consulta:', formData);
-    setIsModalOpen(false);
-    resetForm();
-    loadConsultations();
+    try {
+      await apiService.createConsultation(formData);
+      console.log('Consulta criada:', formData);
+      setIsModalOpen(false);
+      resetForm();
+      loadConsultations();
+    } catch  {
+      console.error('Erro ao salvar consulta:');
+    }
   };
 
   const resetForm = () => {
     setFormData({
+      patientId: '',
       patientName: '',
       date: '',
       time: '',
+      status: 'scheduled',
       notes: '',
+      weight: 0,
     });
   };
 
@@ -87,6 +95,18 @@ export const Consultations: React.FC = () => {
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handlePatientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedPatientId = e.target.value;
+    const selectedPatient = patients.find(p => p.id === selectedPatientId);
+    if (selectedPatient) {
+      setFormData({
+        ...formData,
+        patientId: selectedPatient.id,
+        patientName: selectedPatient.name,
+      });
+    }
   };
 
   const renderCalendarView = () => {
@@ -215,7 +235,6 @@ export const Consultations: React.FC = () => {
 
       {renderCalendarView()}
 
-      {/* Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -223,15 +242,24 @@ export const Consultations: React.FC = () => {
         size="md"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Paciente"
-            value={formData.patientName}
-            onChange={(e) =>
-              setFormData({ ...formData, patientName: e.target.value })
-            }
-            placeholder="Nome do paciente"
-            required
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Paciente
+            </label>
+            <select
+              value={formData.patientId}
+              onChange={handlePatientChange}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              <option value="">Selecione um paciente</option>
+              {patients.map((patient) => (
+                <option key={patient.id} value={patient.id}>
+                  {patient.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <Input
@@ -253,6 +281,18 @@ export const Consultations: React.FC = () => {
               required
             />
           </div>
+
+          <Input
+            label="Peso (kg)"
+            type="number"
+            step="0.1"
+            value={formData.weight || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, weight: Number(e.target.value) })
+            }
+            placeholder="Peso do paciente"
+            required
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
