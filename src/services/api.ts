@@ -132,10 +132,20 @@ async getPatients(page = 1, limit = 10, search = ''): Promise<PaginatedResponse<
     return response.data;
   }
 
-  async createConsultation(consultation: Omit<Consultation, 'id'>): Promise<ApiResponse<Consultation>> {
-    const response = await this.api.post<ApiResponse<Consultation>>('/consultations', consultation);
-    return response.data;
-  }
+async createConsultation(consultation: Omit<Consultation, 'id'>): Promise<ApiResponse<Consultation>> {
+  
+  const payload = {
+    ...consultation,
+    date: consultation.date, 
+  };
+  console.log('Payload enviado ao backend:', payload); 
+  const response = await this.api.post<ApiResponse<Consultation>>('/consultations', payload, {
+    headers: {
+      'Content-Type': 'application/json', 
+    },
+  });
+  return response.data;
+}
 
   async updateConsultation(id: string, consultation: Partial<Consultation>): Promise<ApiResponse<Consultation>> {
     const response = await this.api.put<ApiResponse<Consultation>>(`/consultations/${id}`, consultation);

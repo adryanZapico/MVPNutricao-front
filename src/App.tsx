@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './components/AuthProvider';
 import { PrivateRoute } from './components/PrivateRoute';
@@ -9,6 +8,7 @@ import { Patients } from './pages/Patients';
 import { Consultations } from './pages/Consultations';
 import { MealPlans } from './pages/MealPlans';
 import { Evolution } from './pages/Evolution';
+import { Anamnese } from './pages/Anamnese'; // Importe o componente Anamnese
 
 function App() {
   return (
@@ -32,6 +32,7 @@ function App() {
             <Route path="/consultations" element={<Consultations />} />
             <Route path="/meal-plans" element={<MealPlans />} />
             <Route path="/evolution" element={<Evolution />} />
+            <Route path="/anamnese" element={<Anamnese />} /> {/* Nova rota para Anamnese */}
           </Route>
         </Routes>
       </Router>

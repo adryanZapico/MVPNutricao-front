@@ -8,20 +8,59 @@ export interface User {
 
 export type Gender = 'M' | 'F';
 
-export type Patient = {
+// types.ts
+export interface Patient {
   id: string;
   name: string;
   email: string;
   phone: string;
-  birthDate: string; // ISO date (yyyy-mm-dd)
-  gender: Gender;
-  height: number;
-  currentWeight: number;
-  targetWeight: number;
-  createdAt: string; // ISO
-  updatedAt: string; // ISO
-};
-
+  birthDate: string;
+  gender: 'M' | 'F';
+  maritalStatus?: string;
+  profession?: string;
+  address?: string;
+  height?: number;
+  currentWeight?: number;
+  targetWeight?: number;
+  waistCirc?: number;
+  hipCirc?: number;
+  imc?: number;
+  rcq?: number;
+  fatPercentage?: number;
+  consultReason?: string;
+  diagnosedDiseases?: string;
+  pastSurgeries?: string;
+  familyHistory?: string;
+  medications?: string;
+  allergies?: string;
+  supplements?: string;
+  mealTimes?: string;
+  usualFoods?: string;
+  appetite?: string;
+  chewing?: string;
+  waterIntake?: number;
+  fruitVegConsumption?: string;
+  carbConsumption?: string;
+  proteinConsumption?: string;
+  dairyConsumption?: string;
+  fatConsumption?: string;
+  sugarConsumption?: string;
+  alcoholConsumption?: string;
+  coffeeTeaConsumption?: string;
+  activityLevel?: string;
+  activityType?: string;
+  smoking?: string;
+  alcoholUse?: string;
+  sleep?: string;
+  giSymptoms?: string;
+  weightChanges?: string;
+  fatigue?: string;
+  otherComplaints?: string;
+  goals?: string;
+  nutritionistNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface Consultation {
   id: string;

@@ -13,15 +13,13 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 
-
-
-
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Pacientes', href: '/patients', icon: Users },
   { name: 'Consultas', href: '/consultations', icon: Calendar },
   { name: 'Planos Alimentares', href: '/meal-plans', icon: FileText },
   { name: 'Evolução', href: '/evolution', icon: TrendingUp },
+  { name: 'Anamnese', href: '/anamnese', icon: FileText }, // Novo item para Anamnese
 ];
 
 export const DashboardLayout: React.FC = () => {
