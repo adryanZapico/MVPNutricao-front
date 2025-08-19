@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { useAuth } from '../../hooks/useAuth';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
 
 export const Login: React.FC = () => {
   const { login, isAuthenticated } = useAuth();

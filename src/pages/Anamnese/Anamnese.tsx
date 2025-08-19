@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { apiService } from '../services/api';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { apiService } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 
 interface AnamneseForm {

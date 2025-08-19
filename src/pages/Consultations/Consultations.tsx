@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Consultation, Patient } from '../types';
-import { apiService } from '../services/api';
-import { Button } from '../components/ui/Button';
-import { Modal } from '../components/ui/Modal';
-import { Input } from '../components/ui/Input';
+import { Consultation, Patient } from '../../types';
+import { apiService } from '../../services/api';
+import { Button } from '../../components/ui/Button';
+import { Modal } from '../../components/ui/Modal';
+import { Input } from '../../components/ui/Input';
 
 export const Consultations: React.FC = () => {
   const [consultations, setConsultations] = useState<Consultation[]>([]);

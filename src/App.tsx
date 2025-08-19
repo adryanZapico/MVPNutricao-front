@@ -2,13 +2,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './components/AuthProvider';
 import { PrivateRoute } from './components/PrivateRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
-import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { Patients } from './pages/Patients';
-import { Consultations } from './pages/Consultations';
-import { MealPlans } from './pages/MealPlans';
-import { Evolution } from './pages/Evolution';
-import { Anamnese } from './pages/Anamnese'; // Importe o componente Anamnese
+import { Login } from './pages/Login/Login';  
+import { Dashboard } from './pages/Dashboard/Dashboard';  
+import { Patients } from './pages/Patients/Patients';  
+import { Consultations } from './pages/Consultations/Consultations'; 
+import { MealPlans } from './pages/MealPlans/MealPlans';  
+import { Evolution } from './pages/Evolution/Evolution';  
+import { Anamnese } from './pages/Anamnese/Anamnese';  
 
 function App() {
   return (

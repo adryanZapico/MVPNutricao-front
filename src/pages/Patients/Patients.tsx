@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Edit, Trash2, Eye } from 'lucide-react';
-import { Patient } from '../types';
-import { apiService } from '../services/api';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Table } from '../components/ui/Table';
-import { Modal } from '../components/ui/Modal';
+import { Patient } from '../../types';
+import { apiService } from '../../services/api';
+import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
+import { Table } from '../../components/ui/Table';
+import { Modal } from '../../components/ui/Modal';
 
 export const Patients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);

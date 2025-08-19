@@ -79,6 +79,20 @@ export interface Consultation {
   };
 }
 
+export interface Food {
+  id?: string;
+  name: string;
+  quantity: string;
+  calories: number;
+}
+
+export interface Meal {
+  id?: string;
+  name: string;
+  time: string;
+  foods: Food[];
+}
+
 export interface MealPlan {
   id: string;
   patientId: string;
@@ -88,20 +102,6 @@ export interface MealPlan {
   calories: number;
   createdAt: string;
   meals: Meal[];
-}
-
-export interface Meal {
-  id: string;
-  name: string;
-  time: string;
-  foods: Food[];
-}
-
-export interface Food {
-  id: string;
-  name: string;
-  quantity: string;
-  calories: number;
 }
 
 export interface Evolution {
@@ -131,3 +131,4 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
 }
+
