@@ -19,6 +19,7 @@ interface AnamneseForm {
   waistCirc?: number;
   hipCirc?: number;
   fatPercentage?: number;
+  muscleMass?: number;
   consultReason?: string;
   diagnosedDiseases?: string;
   pastSurgeries?: string;
@@ -69,6 +70,7 @@ export const Anamnese: React.FC = () => {
     waistCirc: undefined,
     hipCirc: undefined,
     fatPercentage: undefined,
+    muscleMass: undefined,
     consultReason: '',
     diagnosedDiseases: '',
     pastSurgeries: '',
@@ -128,10 +130,28 @@ export const Anamnese: React.FC = () => {
     if (!validateForm()) return;
 
     try {
-      await apiService.createPatient(formData);
+      // 1️⃣ Cria o paciente
+      const response = await apiService.createPatient(formData);
+      const newPatientId = response.data.id; // Assumindo que o endpoint retorna o id do paciente
+
+      // 2️⃣ Cria a evolução inicial se houver peso
+      if (formData.currentWeight) {
+        await apiService.postEvolution({
+          patientId: newPatientId,
+          date: new Date().toISOString().slice(0, 10), // Data de hoje
+          weight: formData.currentWeight,
+          bodyFat: formData.fatPercentage,
+          measures: {
+            waist: formData.waistCirc,
+            hip: formData.hipCirc,
+          },
+        });
+      }
+
+      // 3️⃣ Redireciona
       navigate('/patients');
     } catch (error) {
-      console.error('Erro ao criar paciente:', error);
+      console.error('Erro ao criar paciente ou evolução:', error);
       alert('Erro ao criar paciente. Verifique os dados e tente novamente.');
     }
   };
@@ -255,6 +275,14 @@ export const Anamnese: React.FC = () => {
               value={formData.fatPercentage || ''}
               onChange={(e) => handleChange('fatPercentage', Number(e.target.value))}
               error={errors.fatPercentage}
+            />
+            <Input
+              label="Massa muscular (%)"
+              type="number"
+              step="0.1"
+              value={formData.muscleMass || ''}
+              onChange={(e) => handleChange('muscleMass', Number(e.target.value))}
+              error={errors.muscleMass}
             />
           </div>
         </div>

@@ -7,20 +7,33 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
- 
 } from 'recharts';
-import { TrendingUp, TrendingDown, User } from 'lucide-react';
-
+import { TrendingUp, TrendingDown, User, Search } from 'lucide-react';
+import { Input } from '../../components/ui/Input';
+import { Button } from '../../components/ui/Button';
+import { apiService } from '../../services/api';
 
 interface EvolutionData {
+  id: string;
+  patientId: string;
   date: string;
   weight: number;
-  bodyFat: number;
-  muscleMass: number;
-  waist: number;
-  chest: number;
-  hip: number;
-  arm: number;
+  bodyFat?: number;
+  muscleMass?: number;
+  measures?: {
+    waist?: number;
+    chest?: number;
+    hip?: number;
+    arm?: number;
+  };
+}
+
+interface Patient {
+  id: string;
+  name: string;
+  email: string;
+  currentWeight?: number;
+  fatPercentage?: number;
 }
 
 type TimeRange = '3m' | '6m' | '1y';
@@ -31,25 +44,67 @@ interface WeightTrend {
 }
 
 export const Evolution: React.FC = () => {
-  const [selectedPatient, setSelectedPatient] = useState<string>('');
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [evolutionData, setEvolutionData] = useState<EvolutionData[]>([]);
   const [timeRange, setTimeRange] = useState<TimeRange>('6m');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingEvolution, setIsLoadingEvolution] = useState(false);
 
   useEffect(() => {
-    if (selectedPatient) {
-      loadEvolutionData();
-    }
-  }, [selectedPatient, timeRange]);
+    loadPatients();
+  }, []);
 
-  const loadEvolutionData = async (): Promise<void> => {
-    const mockData: EvolutionData[] = [
-      { date: '2024-01-01', weight: 70, bodyFat: 22, muscleMass: 35, waist: 78, chest: 95, hip: 98, arm: 28 },
-      { date: '2024-01-15', weight: 69.5, bodyFat: 21.5, muscleMass: 35.2, waist: 77, chest: 95, hip: 97, arm: 28.2 },
-      { date: '2024-02-01', weight: 69, bodyFat: 21, muscleMass: 35.5, waist: 76, chest: 96, hip: 96, arm: 28.5 },
-      { date: '2024-02-15', weight: 68.5, bodyFat: 20.5, muscleMass: 35.8, waist: 75, chest: 96, hip: 95, arm: 28.8 },
-      { date: '2024-03-01', weight: 68, bodyFat: 20, muscleMass: 36, waist: 74, chest: 97, hip: 94, arm: 29 },
-    ];
-    setEvolutionData(mockData);
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredPatients([]);
+    } else {
+      const filtered = patients.filter(patient =>
+        patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredPatients(filtered);
+    }
+  }, [searchTerm, patients]);
+
+  const loadPatients = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiService.getPatients();
+      setPatients(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar pacientes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadPatientEvolution = async (patientId: string) => {
+    try {
+      setIsLoadingEvolution(true);
+      const response = await apiService.getEvolution(patientId);
+      setEvolutionData(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar evolução:', error);
+      setEvolutionData([]);
+    } finally {
+      setIsLoadingEvolution(false);
+    }
+  };
+
+  const selectPatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setSearchTerm(patient.name);
+    setFilteredPatients([]);
+    loadPatientEvolution(patient.id);
+  };
+
+  const clearSelection = () => {
+    setSelectedPatient(null);
+    setSearchTerm('');
+    setEvolutionData([]);
   };
 
   const getWeightTrend = (): WeightTrend => {
@@ -59,13 +114,47 @@ export const Evolution: React.FC = () => {
     const previous = evolutionData[evolutionData.length - 2];
     const difference = latest.weight - previous.weight;
 
+    if (Math.abs(difference) < 0.1) return { trend: 'stable', value: 0 };
+
     return {
-      trend: difference > 0 ? 'up' : difference < 0 ? 'down' : 'stable',
+      trend: difference > 0 ? 'up' : 'down',
       value: Math.abs(difference)
     };
   };
 
+  const getLatestBodyFat = (): number | undefined => {
+    if (evolutionData.length === 0) return selectedPatient?.fatPercentage;
+    
+    for (let i = evolutionData.length - 1; i >= 0; i--) {
+      if (evolutionData[i].bodyFat !== undefined) {
+        return evolutionData[i].bodyFat;
+      }
+    }
+    
+    return selectedPatient?.fatPercentage;
+  };
+
+  const getLatestMuscleMass = (): number | undefined => {
+    if (evolutionData.length === 0) return undefined;
+    
+    for (let i = evolutionData.length - 1; i >= 0; i--) {
+      if (evolutionData[i].muscleMass !== undefined) {
+        return evolutionData[i].muscleMass;
+      }
+    }
+    
+    return undefined;
+  };
+
+  const getLatestWeight = (): number | undefined => {
+    if (evolutionData.length === 0) return selectedPatient?.currentWeight;
+    return evolutionData[evolutionData.length - 1].weight;
+  };
+
   const weightTrend = getWeightTrend();
+  const latestWeight = getLatestWeight();
+  const latestBodyFat = getLatestBodyFat();
+  const latestMuscleMass = getLatestMuscleMass();
 
   return (
     <div className="space-y-6">
@@ -73,24 +162,40 @@ export const Evolution: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Evolução dos Pacientes</h1>
       </div>
 
-     
+      {/* Pesquisa de Pacientes */}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center space-x-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Selecionar Paciente
+              Buscar Paciente
             </label>
-            <select
-              value={selectedPatient}
-              onChange={(e) => setSelectedPatient(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Selecione um paciente</option>
-              <option value="1">Maria Silva</option>
-              <option value="2">João Santos</option>
-              <option value="3">Ana Costa</option>
-            </select>
+            <div className="relative">
+              <Input
+                placeholder="Digite o nome do paciente..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={!!selectedPatient}
+                className="pr-10"
+              />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+
+            {filteredPatients.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                {filteredPatients.map(patient => (
+                  <div
+                    key={patient.id}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => selectPatient(patient)}
+                  >
+                    <div className="font-medium">{patient.name}</div>
+                    <div className="text-sm text-gray-600">{patient.email}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Período
@@ -116,13 +221,32 @@ export const Evolution: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {selectedPatient && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-blue-900">Paciente Selecionado</h3>
+                <p className="text-blue-700">{selectedPatient.name}</p>
+                <p className="text-sm text-blue-600">{selectedPatient.email}</p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={clearSelection}
+              >
+                Alterar
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {selectedPatient ? (
         <>
-        
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           
+          {/* Cards de Estatísticas */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Peso Atual */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-blue-100">
@@ -131,15 +255,13 @@ export const Evolution: React.FC = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Peso Atual</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {evolutionData.length > 0
-                      ? `${evolutionData[evolutionData.length - 1].weight} kg`
-                      : '-'}
+                    {latestWeight ? `${latestWeight} kg` : 'N/A'}
                   </p>
                 </div>
               </div>
             </div>
 
-          
+            {/* Variação */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <div
@@ -181,7 +303,7 @@ export const Evolution: React.FC = () => {
               </div>
             </div>
 
-       
+            {/* Percentual de Gordura */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-purple-100">
@@ -190,54 +312,124 @@ export const Evolution: React.FC = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">% Gordura</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {evolutionData.length > 0
-                      ? `${evolutionData[evolutionData.length - 1].bodyFat}%`
-                      : '-'}
+                    {latestBodyFat ? `${latestBodyFat}%` : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Massa Muscular */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-orange-100">
+                  <TrendingUp className="h-6 w-6 text-orange-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Massa Muscular</p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {latestMuscleMass ? `${latestMuscleMass} %` : 'N/A'}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-         
+          {/* Gráfico de Evolução */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Evolução do Peso
             </h2>
             <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={evolutionData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value: string) =>
-                      new Date(value).toLocaleDateString('pt-BR', {
-                        month: 'short',
-                        day: '2-digit'
-                      })
-                    }
-                  />
-                  <YAxis
-                    domain={['dataMin - 2', 'dataMax + 2']}
-                    tickFormatter={(value: number) => `${value}kg`}
-                  />
-                  <Tooltip
-                    labelFormatter={(value: string) =>
-                      new Date(value).toLocaleDateString('pt-BR')
-                    }
-                    formatter={(value: number) => [`${value} kg`, 'Peso']}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="weight"
-                    stroke="#3B82F6"
-                    strokeWidth={3}
-                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {isLoadingEvolution ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                </div>
+              ) : evolutionData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={evolutionData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(value: string) =>
+                        new Date(value).toLocaleDateString('pt-BR', {
+                          month: 'short',
+                          day: '2-digit'
+                        })
+                      }
+                    />
+                    <YAxis
+                      domain={['dataMin - 2', 'dataMax + 2']}
+                      tickFormatter={(value: number) => `${value}kg`}
+                    />
+                    <Tooltip
+                      labelFormatter={(value: string) =>
+                        new Date(value).toLocaleDateString('pt-BR')
+                      }
+                      formatter={(value: number) => [`${value} kg`, 'Peso']}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="weight"
+                      stroke="#3B82F6"
+                      strokeWidth={3}
+                      dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  Nenhum dado de evolução disponível
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Tabela de Dados Detalhados */}
+          {evolutionData.length > 0 && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Histórico de Evolução
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Data
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Peso (kg)
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        % Gordura
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        % Massa Muscular 
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {evolutionData.map((evolution) => (
+                      <tr key={evolution.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(evolution.date).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {evolution.weight}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {evolution.bodyFat || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {evolution.muscleMass ? `${evolution.muscleMass} ` : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <div className="bg-white rounded-lg shadow p-12 text-center">
@@ -246,8 +438,7 @@ export const Evolution: React.FC = () => {
             Selecione um paciente
           </h2>
           <p className="text-gray-600">
-            Escolha um paciente acima para visualizar sua evolução e progresso
-            ao longo do tempo.
+            Use a busca acima para visualizar a evolução de um paciente
           </p>
         </div>
       )}

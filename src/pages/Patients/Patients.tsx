@@ -461,6 +461,15 @@ export const Patients: React.FC = () => {
                 error={errors.fatPercentage}
               />
               <Input
+                label="Massa muscular (%)"
+                type="number"
+                step="0.1"
+                value={formData.muscleMass || ''}
+                onChange={(e) => setFormData({ ...formData, muscleMass: Number(e.target.value) || undefined })}
+                disabled={modalMode === 'view'}
+                error={errors.muscleMass}
+              />
+              <Input
                 label="IMC"
                 value={formData.imc || ''}
                 disabled

@@ -27,6 +27,7 @@ export interface Patient {
   imc?: number;
   rcq?: number;
   fatPercentage?: number;
+  muscleMass?: number;
   consultReason?: string;
   diagnosedDiseases?: string;
   pastSurgeries?: string;
@@ -60,6 +61,7 @@ export interface Patient {
   nutritionistNotes?: string;
   createdAt: string;
   updatedAt: string;
+  
 }
 
 export interface Consultation {

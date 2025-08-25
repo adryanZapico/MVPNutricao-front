@@ -189,6 +189,17 @@ async createConsultation(consultation: Omit<Consultation, 'id'>): Promise<ApiRes
     return response.data;
   }
 
+  async postEvolution(data: {
+  patientId: string;
+  date: string;
+  weight: number;
+  bodyFat?: number;
+  measures?: { waist?: number; hip?: number };
+}): Promise<ApiResponse<Evolution>> {
+  const response = await this.api.post<ApiResponse<Evolution>>('/evolution', data);
+  return response.data;
+}
+
   async addEvolution(evolution: Omit<Evolution, 'id'>): Promise<ApiResponse<Evolution>> {
     const response = await this.api.post<ApiResponse<Evolution>>('/evolution', evolution);
     return response.data;
