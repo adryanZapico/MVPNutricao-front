@@ -3,6 +3,9 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { apiService } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { Alert } from '../../components/ui/Alert';
+
+
 
 interface AnamneseForm {
   name: string;
@@ -152,7 +155,13 @@ export const Anamnese: React.FC = () => {
       navigate('/patients');
     } catch (error) {
       console.error('Erro ao criar paciente ou evolução:', error);
-      alert('Erro ao criar paciente. Verifique os dados e tente novamente.');
+
+      <Alert
+        variant="success"
+        title="Sucesso!"
+        message="'Erro ao criar paciente. Verifique os dados e tente novamente."
+      />
+      
     }
   };
 

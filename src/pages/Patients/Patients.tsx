@@ -6,6 +6,8 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Table } from '../../components/ui/Table';
 import { Modal } from '../../components/ui/Modal';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+
 
 export const Patients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -17,6 +19,9 @@ export const Patients: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<'edit' | 'view'>('view');
   const [errors, setErrors] = useState<Partial<Record<keyof Patient, string>>>({});
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
+
 
   const [formData, setFormData] = useState<Patient>({
     id: '',
@@ -126,17 +131,26 @@ export const Patients: React.FC = () => {
     }
   };
 
-  const handleDelete = async (patient: Patient) => {
-    if (window.confirm(`Tem certeza que deseja excluir o paciente ${patient.name}?`)) {
-      try {
-        await apiService.deletePatient(patient.id);
-        loadPatients();
-      } catch (error) {
-        console.error('Erro ao excluir paciente:', error);
-        alert('Erro ao excluir paciente.');
-      }
+  const handleDelete = (patient: Patient) => {
+    setPatientToDelete(patient);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!patientToDelete) return;
+    try {
+      await apiService.deletePatient(patientToDelete.id);
+      loadPatients();
+      // Aqui você pode exibir seu <Alert variant="success" ... /> de feedback
+    } catch (error) {
+      console.error('Erro ao excluir paciente:', error);
+      // Aqui também pode usar seu <Alert variant="error" ... />
+    } finally {
+      setIsConfirmOpen(false);
+      setPatientToDelete(null);
     }
   };
+
 
   const formatDateForInput = (dateString?: string) => {
     if (!dateString) return '';
@@ -742,6 +756,14 @@ export const Patients: React.FC = () => {
           </div>
         </form>
       </Modal>
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        title="Excluir Paciente"
+        message={`Tem certeza que deseja excluir o paciente ${patientToDelete?.name}?`}
+        onConfirm={confirmDelete}
+        onCancel={() => setIsConfirmOpen(false)}
+      />
+
     </div>
   );
 };

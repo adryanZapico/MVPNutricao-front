@@ -9,6 +9,7 @@ interface DashboardStats {
   monthlyGrowth: number;
 }
 
+
 const StatCard: React.FC<{
   title: string;
   value: string | number;
