@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Calendar, FileText, TrendingUp } from 'lucide-react';
-// import { apiService } from '../services/api';
+import { apiService } from '../../services/api'; // agora usamos de verdade
 
 interface DashboardStats {
   totalPatients: number;
@@ -8,7 +8,6 @@ interface DashboardStats {
   activeMealPlans: number;
   monthlyGrowth: number;
 }
-
 
 const StatCard: React.FC<{
   title: string;
@@ -30,12 +29,7 @@ const StatCard: React.FC<{
 );
 
 export const Dashboard: React.FC = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalPatients: 0,
-    todayConsultations: 0,
-    activeMealPlans: 0,
-    monthlyGrowth: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,22 +38,11 @@ export const Dashboard: React.FC = () => {
 
   const loadDashboardStats = async () => {
     try {
-      // Simulando dados enquanto não há backend
-      setTimeout(() => {
-        setStats({
-          totalPatients: 127,
-          todayConsultations: 8,
-          activeMealPlans: 45,
-          monthlyGrowth: 12.5,
-        });
-        setIsLoading(false);
-      }, 1000);
-      
-      // Quando houver backend, usar:
-      // const response = await apiService.getDashboardStats();
-      // setStats(response.data);
+      const data = await apiService.getDashboardStats();
+      setStats(data);
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -83,6 +66,10 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (!stats) {
+    return <p className="text-red-600">Erro ao carregar estatísticas</p>;
   }
 
   return (
@@ -127,7 +114,7 @@ export const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Activity e Próximas Consultas ainda mockados */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
@@ -135,19 +122,8 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {[
-                { time: '09:00', patient: 'Maria Silva', type: 'Consulta de retorno' },
-                { time: '10:30', patient: 'João Santos', type: 'Primeira consulta' },
-                { time: '14:00', patient: 'Ana Costa', type: 'Acompanhamento' },
-              ].map((appointment, index) => (
-                <div key={index} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="font-medium text-gray-900">{appointment.patient}</p>
-                    <p className="text-sm text-gray-600">{appointment.type}</p>
-                  </div>
-                  <span className="text-sm font-medium text-blue-600">{appointment.time}</span>
-                </div>
-              ))}
+              {/* Aqui ainda mockado */}
+              <p className="text-gray-500 text-sm">Integração com backend ainda não implementada</p>
             </div>
           </div>
         </div>
@@ -158,19 +134,8 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {[
-                { action: 'Novo paciente cadastrado', patient: 'Carlos Oliveira', time: '2h atrás' },
-                { action: 'Plano alimentar criado', patient: 'Lucia Fernandes', time: '4h atrás' },
-                { action: 'Consulta finalizada', patient: 'Pedro Lima', time: '6h atrás' },
-              ].map((activity, index) => (
-                <div key={index} className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-sm text-gray-600">{activity.patient}</p>
-                  </div>
-                  <span className="text-xs text-gray-500">{activity.time}</span>
-                </div>
-              ))}
+              {/* Aqui ainda mockado */}
+              <p className="text-gray-500 text-sm">Integração com backend ainda não implementada</p>
             </div>
           </div>
         </div>

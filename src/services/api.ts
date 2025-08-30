@@ -12,6 +12,7 @@ import {
 } from '../types';
 
 
+
 class ApiService {
   private api: AxiosInstance;
 
@@ -51,31 +52,31 @@ class ApiService {
   }
 
   // ---------- AUTH ----------
- async login(email: string, password: string) {
-  // 1️⃣ Verifica se estamos usando mock (sem backend)
-  if (import.meta.env.VITE_USE_MOCK === 'true') {
-    const user = mockUsers.find(u => u.email === email && u.password === password);
-    if (!user) {
-      throw new Error('Credenciais inválidas');
+  async login(email: string, password: string) {
+    // 1️⃣ Verifica se estamos usando mock (sem backend)
+    if (import.meta.env.VITE_USE_MOCK === 'true') {
+      const user = mockUsers.find(u => u.email === email && u.password === password);
+      if (!user) {
+        throw new Error('Credenciais inválidas');
+      }
+
+      // Salva token no navegador
+      localStorage.setItem('token', user.token);
+
+      // Retorna dados no formato esperado
+      return {
+        success: true,
+        data: {
+          token: user.token,
+          user: { name: user.name, email: user.email }
+        }
+      };
     }
 
-    // Salva token no navegador
-    localStorage.setItem('token', user.token);
-
-    // Retorna dados no formato esperado
-    return {
-      success: true,
-      data: {
-        token: user.token,
-        user: { name: user.name, email: user.email }
-      }
-    };
+    // 2️⃣ Se não for mock, chama API real
+    const response = await this.api.post('/auth/login', { email, password });
+    return response.data;
   }
-
-  // 2️⃣ Se não for mock, chama API real
-  const response = await this.api.post('/auth/login', { email, password });
-  return response.data;
-}
 
   async logout(): Promise<void> {
     await this.api.post('/auth/logout');
@@ -88,16 +89,16 @@ class ApiService {
   }
 
   // ---------- PATIENTS ----------
-async getPatients(page = 1, limit = 10, search = ''): Promise<PaginatedResponse<Patient>> {
-  const response = await this.api.get<PaginatedResponse<Patient>>('/patients', {
-    params: {
-      page,
-      limit,
-      search // backend precisa ler isso
-    }
-  });
-  return response.data;
-}
+  async getPatients(page = 1, limit = 10, search = ''): Promise<PaginatedResponse<Patient>> {
+    const response = await this.api.get<PaginatedResponse<Patient>>('/patients', {
+      params: {
+        page,
+        limit,
+        search // backend precisa ler isso
+      }
+    });
+    return response.data;
+  }
 
   async getPatient(id: string): Promise<ApiResponse<Patient>> {
     const response = await this.api.get<ApiResponse<Patient>>(`/patients/${id}`);
@@ -132,20 +133,20 @@ async getPatients(page = 1, limit = 10, search = ''): Promise<PaginatedResponse<
     return response.data;
   }
 
-async createConsultation(consultation: Omit<Consultation, 'id'>): Promise<ApiResponse<Consultation>> {
-  
-  const payload = {
-    ...consultation,
-    date: consultation.date, 
-  };
-  console.log('Payload enviado ao backend:', payload); 
-  const response = await this.api.post<ApiResponse<Consultation>>('/consultations', payload, {
-    headers: {
-      'Content-Type': 'application/json', 
-    },
-  });
-  return response.data;
-}
+  async createConsultation(consultation: Omit<Consultation, 'id'>): Promise<ApiResponse<Consultation>> {
+
+    const payload = {
+      ...consultation,
+      date: consultation.date,
+    };
+    console.log('Payload enviado ao backend:', payload);
+    const response = await this.api.post<ApiResponse<Consultation>>('/consultations', payload, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }
 
   async updateConsultation(id: string, consultation: Partial<Consultation>): Promise<ApiResponse<Consultation>> {
     const response = await this.api.put<ApiResponse<Consultation>>(`/consultations/${id}`, consultation);
@@ -190,15 +191,15 @@ async createConsultation(consultation: Omit<Consultation, 'id'>): Promise<ApiRes
   }
 
   async postEvolution(data: {
-  patientId: string;
-  date: string;
-  weight: number;
-  bodyFat?: number;
-  measures?: { waist?: number; hip?: number };
-}): Promise<ApiResponse<Evolution>> {
-  const response = await this.api.post<ApiResponse<Evolution>>('/evolution', data);
-  return response.data;
-}
+    patientId: string;
+    date: string;
+    weight: number;
+    bodyFat?: number;
+    measures?: { waist?: number; hip?: number };
+  }): Promise<ApiResponse<Evolution>> {
+    const response = await this.api.post<ApiResponse<Evolution>>('/evolution', data);
+    return response.data;
+  }
 
   async addEvolution(evolution: Omit<Evolution, 'id'>): Promise<ApiResponse<Evolution>> {
     const response = await this.api.post<ApiResponse<Evolution>>('/evolution', evolution);
@@ -206,10 +207,10 @@ async createConsultation(consultation: Omit<Consultation, 'id'>): Promise<ApiRes
   }
 
   // ---------- DASHBOARD ----------
-  async getDashboardStats(): Promise<ApiResponse<unknown>> {
-    const response = await this.api.get<ApiResponse<unknown>>('/dashboard/stats');
-    return response.data;
+  async getDashboardStats(): Promise<DashboardStats> {
+    const response = await this.api.get<ApiResponse<DashboardStats>>('/dashboard/stats');
+    return response.data.data; // pega só o conteúdo útil
   }
-}
 
+}
 export const apiService = new ApiService();

@@ -134,3 +134,10 @@ export interface PaginatedResponse<T> {
   limit: number;
 }
 
+
+export interface DashboardStats {
+  totalPatients: number;
+  todayConsultations: number;
+  activeMealPlans: number;
+  monthlyGrowth: number;
+}
