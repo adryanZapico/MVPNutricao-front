@@ -1,13 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Calendar, FileText, TrendingUp } from 'lucide-react';
-import { apiService } from '../../services/api'; // agora usamos de verdade
+import { apiService } from '../../services/api';
+import { DashboardStats } from '../../types';
 
-interface DashboardStats {
-  totalPatients: number;
-  todayConsultations: number;
-  activeMealPlans: number;
-  monthlyGrowth: number;
-}
 
 const StatCard: React.FC<{
   title: string;

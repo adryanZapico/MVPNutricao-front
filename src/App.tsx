@@ -3,6 +3,7 @@ import { AuthProvider } from './components/AuthProvider';
 import { PrivateRoute } from './components/PrivateRoute';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { Login } from './pages/Login/Login';  
+import { Register } from './pages/Register/Register';  
 import { Dashboard } from './pages/Dashboard/Dashboard';  
 import { Patients } from './pages/Patients/Patients';  
 import { Consultations } from './pages/Consultations/Consultations'; 
@@ -15,7 +16,9 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Rota pública */}
+          {/* Rota pública principal: Register */}
+          <Route path="/" element={<Navigate to="/register" replace />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
 
           {/* Rotas privadas com layout */}
@@ -26,13 +29,12 @@ function App() {
               </PrivateRoute>
             }
           >
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/patients" element={<Patients />} />
             <Route path="/consultations" element={<Consultations />} />
             <Route path="/meal-plans" element={<MealPlans />} />
             <Route path="/evolution" element={<Evolution />} />
-            <Route path="/anamnese" element={<Anamnese />} /> {/* Nova rota para Anamnese */}
+            <Route path="/anamnese" element={<Anamnese />} />
           </Route>
         </Routes>
       </Router>

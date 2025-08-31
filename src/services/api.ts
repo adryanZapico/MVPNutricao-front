@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { mockUsers } from '../mock/mockUsers';
+import { DashboardStats } from '../types';
 
 import {
   ApiResponse,
@@ -38,7 +38,7 @@ class ApiService {
       (error) => Promise.reject(error)
     );
 
-    // Trata respostas com erro
+   
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
@@ -53,27 +53,6 @@ class ApiService {
 
   // ---------- AUTH ----------
   async login(email: string, password: string) {
-    // 1️⃣ Verifica se estamos usando mock (sem backend)
-    if (import.meta.env.VITE_USE_MOCK === 'true') {
-      const user = mockUsers.find(u => u.email === email && u.password === password);
-      if (!user) {
-        throw new Error('Credenciais inválidas');
-      }
-
-      // Salva token no navegador
-      localStorage.setItem('token', user.token);
-
-      // Retorna dados no formato esperado
-      return {
-        success: true,
-        data: {
-          token: user.token,
-          user: { name: user.name, email: user.email }
-        }
-      };
-    }
-
-    // 2️⃣ Se não for mock, chama API real
     const response = await this.api.post('/auth/login', { email, password });
     return response.data;
   }
@@ -211,6 +190,13 @@ class ApiService {
     const response = await this.api.get<ApiResponse<DashboardStats>>('/dashboard/stats');
     return response.data.data; // pega só o conteúdo útil
   }
+
+  // ---------- REGISTER ----------
+  async register(name: string, email: string, password: string) {
+  const response = await this.api.post('/auth/register', { name, email, password });
+  return response.data;
+}
+
 
 }
 export const apiService = new ApiService();
